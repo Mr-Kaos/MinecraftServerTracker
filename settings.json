@@ -1,0 +1,9 @@
+{
+	"Security": {
+		"Require_Username": false
+	},
+	"Worlds": {
+		"Name": "My World",
+		"Path:": "can be url or path on local disk. if url, should be a GET request to the world folder."
+	}
+}
