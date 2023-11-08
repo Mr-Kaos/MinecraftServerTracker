@@ -1,10 +1,4 @@
 <?php
-include("page_components/header.php");
-include("page_components/nav.php");
-?>
-<mian>
-	
-</mian>
+// Temporary include. This file will be replaced with a proper page routing system.
 
-
-<?php include("page_components/footer.php");?>
+include("home.php");

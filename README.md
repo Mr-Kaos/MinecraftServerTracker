@@ -19,6 +19,7 @@ Below is the list of planned features for this web app. For features currently i
 ### Currently in Development:
 
 - [ ] Core site framework
+- [ ] Loading statistics from local save file
 
 ### To Be Developed:
 
