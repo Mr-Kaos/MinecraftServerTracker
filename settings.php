@@ -29,9 +29,11 @@ class Settings
 	}
 
 	/**
-	 * Retrieves the data for the world with the specified name.
+	 * Checks that the given world exists.
+	 * If it does, it retrieves the data for the world with the specified name.
+	 * @param string $name The name of the world.
 	 */
-	public function getWorld(string $name): ?array
+	public function checkWorld(string $name): ?array
 	{
 		$world = null;
 
@@ -48,44 +50,6 @@ class Settings
 	}
 
 	/**
-	 * Retrieves a list of all players for the specified world and returns each player name as a JSON object.
-	 */
-	public function getWorldPlayers(array $world): ?string
-	{
-		$players = array();
-
-		if ($path = $this->checkJSONKey('Path', $world)) {
-			$path = $path . '/' . $world["Name"];
-			if (is_dir($path)) {
-				// check that playerdata folder exists
-				if (is_dir($path = "$path/playerdata")) {
-					$dh = opendir($path);
-					while (($file = readdir($dh)) !== false) {
-						if (!is_dir($file) && (substr($file, strlen($file) - 4, 4)) == '.dat') {
-							$player = new Player(substr($file, 0, strlen($file) - 4));
-							array_push($players, $player);
-						}
-					}
-				}
-			} else {
-				echo "The World folder cannot be found at '$path'.";
-			}
-		}
-
-		return json_encode($players);
-	}
-
-	/**
-	 * Retrieves 
-	 */
-	public function getWorldStats(string $name): ?array
-	{
-		$stats = null;
-
-		return $stats;
-	}
-
-	/**
 	 * checks if the specified key in the given array exists. if it does, it returns its value. Else, it returns false.
 	 */
 	private function checkJSONKey(string $key, array $obj): mixed
@@ -95,25 +59,5 @@ class Settings
 			$result = false;
 		}
 		return $result;
-	}
-
-	/**
-	 * Performs a cURL request to sessionserver.mojang.com for the specified player's data.
-	 */
-	private function getPlayerInfo(string $uuid)
-	{
-		$curl = curl_init("https://sessionserver.mojang.com/session/minecraft/profile/$uuid?unsigned=false");
-		curl_setopt($curl, CURLOPT_HTTPGET, 'GET');
-
-		$json = json_decode(curl_exec($curl));
-		echo '<pre>' . print_r($json, true) . '</pre>';
-		curl_exec($curl);
-		var_dump(curl_getinfo($curl));
-	}
-
-	private function readPlayersFile(string $worldPath)
-	{
-
-		// readfile();
 	}
 }

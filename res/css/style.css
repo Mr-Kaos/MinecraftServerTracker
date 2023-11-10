@@ -1,0 +1,8 @@
+body {
+	font-family: 'Courier New', Courier, monospace;
+}
+
+.player-skin {
+	width: 100px;
+	image-rendering: pixelated;
+}
