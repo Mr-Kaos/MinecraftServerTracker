@@ -20,6 +20,14 @@ class Player
 	}
 
 	/**
+	 * PHP magic GET function
+	 */
+	public function __get($name)
+	{
+		return $this->$name;
+	}
+
+	/**
 	 * Gets the texture of a player's head. If the player does not have a skin, the default steve skin is loaded.
 	 */
 	public function getPlayerHead()
@@ -27,6 +35,7 @@ class Player
 		$src = $this->skinURI ?? CACHE_DIR . "default.png";
 		return $src;
 	}
+
 
 	/**
 	 * Reads the cached user data. If no user data is cached, it retrieves it from the Mojang servers.
@@ -83,7 +92,6 @@ class Player
 
 	private function isCached(string $uuid): bool
 	{
-		echo $uuid;
 		return file_exists(CACHE_DIR . "$uuid.json");
 	}
 
@@ -96,5 +104,41 @@ class Player
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 'GET');
 
 		return curl_exec($curl);
+	}
+
+	/** 
+	 * Reads the player's stat file from the current world.
+	 */
+	private function readStatsJSON(string $worldPath, array $categories = null, array $keys = null): array
+	{
+		$stats = array();
+		if (file_exists($worldPath . "/stats/$this->uuid.json")) {
+			$json = json_decode(file_get_contents($worldPath . "/stats/$this->uuid.json"), true);
+
+			foreach ($categories as $cat) {
+				foreach ($keys as $key) {
+					$stats[$cat][$key] = $json["stats"][$cat][$key];
+				}
+			}
+		}
+		return $stats;
+	}
+
+	/**
+	 * Retrieves and returns the playtime as a string. Formats the playtime into days:hours:mins.
+	 */
+	public function getPlayTime(string $worldPath): string
+	{
+		$stats = $this->readStatsJSON($worldPath, ["minecraft:custom"], ["minecraft:play_one_minute"]);
+		$playtime = "0 mins";
+		if (!empty($stats)) {
+			$secs = $stats["minecraft:custom"]["minecraft:play_one_minute"] / 20;
+			$time = new DateTime('@0');
+			$time2 = new DateTime('@' . $secs);
+			$playtime = $time->diff($time2)->format('%a days, %hh %im %ss');
+			$playtime .= '<br>' . round($secs / 60 / 60, 2). 'hrs';
+		}
+
+		return $playtime;
 	}
 }

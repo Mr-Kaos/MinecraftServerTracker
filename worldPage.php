@@ -12,9 +12,8 @@ if (!is_null($worldData = $settings->checkWorld($_GET['world']))) {
 	<?php else : ?>
 		<h2><?= $world->__get("name") ?></h2>
 		<h4>Server: <?= $world->__get("address") ?></h3>
+		<h3>Players</h3>
 		<div id="player_list">
-			<h3>Players</h3>
-			<!-- <p>Retrieve player names and data.</p> -->
 			<?= $world->displayPlayers() ?>
 		</div>
 

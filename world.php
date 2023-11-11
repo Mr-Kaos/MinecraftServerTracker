@@ -45,8 +45,13 @@ class World
 			$html = "<p>$this->players</p>";
 		} else {
 			// echo '<pre>' . print_r($this->players, true) . '</pre>';
-			foreach($this->players as $player) {
-				echo '<img class="player-skin" src="' . $player->getPlayerHead() . '">';
+			foreach ($this->players as $player) {
+				$html .= '<div class="player-container">';
+				$html .= '<img class="player-skin" src="' . $player->getPlayerHead() . '"><div>';
+				$html .= '<h3>' . $player->__get('name') . '</h3>';
+				$html .= '<b>Playtime: ' . $player->getPlayTime("$this->path/$this->name") . '</b>';
+				$html .= '<a href="#">View all stats</a>';
+				$html .= '</div></div>';
 			}
 		}
 

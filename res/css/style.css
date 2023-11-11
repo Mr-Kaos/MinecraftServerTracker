@@ -1,8 +1,63 @@
+:root {
+	--player-icon-width: 75px;
+}
+
 body {
 	font-family: 'Courier New', Courier, monospace;
 }
 
+main {
+	width: 90%;
+	margin: auto auto;
+}
+
+#player_list {
+	display: grid;
+	grid-template-columns: auto auto auto;
+	gap: 3px;
+	width: 90%;
+}
+
+.player-container {
+	/* border: solid black thin; */
+}
+
+.player-container div {
+	height: 100%;
+	width: calc(100% - var(--player-icon-width) - 10px);
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	float: left;
+}
+
+.player-container a {
+	position: absolute;
+	bottom: 0;
+}
+
+.player-container h3 {
+	display: inline;
+	margin: 0px;
+}
+
+.player-container img {
+	padding: 5px;
+	float: left;
+}
+
 .player-skin {
-	width: 100px;
+	width: var(--player-icon-width);
 	image-rendering: pixelated;
+}
+
+@media screen and (min-width: 0px) and (max-width: 1080px) {
+	main {
+		width: unset;
+	}
+
+	#player_list {
+		grid-template-columns: auto auto;
+		width: unset;
+	}
 }
