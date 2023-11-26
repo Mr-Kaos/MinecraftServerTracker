@@ -8,6 +8,7 @@ class World
 {
 	private string $name;
 	private ?string $path;
+	private ?string $worldFolder;
 	private ?string $address;
 	private array $players;
 
@@ -18,8 +19,10 @@ class World
 	{
 		$this->name = isset($worldData["Name"]) ? $worldData["Name"] : "New World";
 		$this->path = isset($worldData["Path"]) ? $worldData["Path"] : null;
+		$this->worldFolder = null;
 		$this->address = isset($worldData["Address"]) ? $worldData["Address"] : null;
-		$this->players = $this->getPlayers();
+		$this->players = array();
+		$this->readWorldProperties();
 	}
 
 	public function __destruct()
@@ -40,6 +43,7 @@ class World
 	 */
 	public function displayPlayers(): string
 	{
+		$this->players = $this->getPlayers();
 		$html = '';
 		if (gettype($this->players) == 'string') {
 			$html = "<p>$this->players</p>";
@@ -50,12 +54,33 @@ class World
 				$html .= '<img class="player-skin" src="' . $player->getPlayerHead() . '"><div>';
 				$html .= '<h3>' . $player->__get('name') . '</h3>';
 				$html .= '<b>Playtime: ' . $player->getPlayTime("$this->path/$this->name") . '</b>';
-				$html .= '<a href="#">View all stats</a>';
+				$html .= '<a href="playerPage.php?uuid=' . $player->__get('uuid') . '&world=' . $this->name . '">View all stats</a>';
 				$html .= '</div></div>';
 			}
 		}
 
 		return $html;
+	}
+
+	/**
+	 * Gets the player with the specified UUID.
+	 * @param string $uuid The UUID of the player to retrieve.
+	 */
+	public function getPlayer(string $uuid): ?Player
+	{
+		$player = null;
+		if (!is_null($this->path)) {
+			if (is_dir($this->path)) {
+				if (file_exists("$this->path/$this->name/playerdata/$uuid.dat")) {
+					$player = new Player($uuid);
+				}
+			} else {
+				echo "The World folder cannot be found at '$this->path'.";
+			}
+		} else {
+			echo 'This world has no player data.';
+		}
+		return $player;
 	}
 
 	/**
@@ -67,10 +92,10 @@ class World
 	{
 		$players = array();
 
-		if (!is_null($this->path)) {
+		if (!is_null($this->path) && !is_null($this->worldFolder)) {
 			if (is_dir($this->path)) {
 				// check that playerdata folder exists
-				if (is_dir($path = "$this->path/$this->name/playerdata")) {
+				if (is_dir($path = "$this->path/$this->worldFolder/playerdata")) {
 					$dh = opendir($path);
 					while (($file = readdir($dh)) !== false) {
 						if (!is_dir($file) && (substr($file, strlen($file) - 4, 4)) == '.dat') {
@@ -86,7 +111,7 @@ class World
 				echo "The World folder cannot be found at '$this->path'.";
 			}
 		} else {
-			echo 'This world has no player data.';
+			echo 'This world does not exist on the disk. Check that the path in the JSON is correct.';
 		}
 
 		return $players;
@@ -100,5 +125,31 @@ class World
 		$stats = null;
 
 		return $stats;
+	}
+
+	/**
+	 * Reads the server's server.properties file to get information on the server.
+	 * currently only reads the world name and exits after it has been retrieved.
+	 */
+	private function readWorldProperties()
+	{
+		$finished = false;
+		if (!is_null($this->path)) {
+			foreach (file($this->path . '/server.properties') as $line) {
+				if ($line[0] !== '#') {
+					$split = explode('=', $line);
+
+					switch ($split[0]) {
+						case 'level-name':
+							$this->worldFolder = trim($split[1]);
+							$finished = true;
+							break;
+					}
+				}
+				if ($finished) {
+					break;
+				}
+			}
+		}
 	}
 }

@@ -36,6 +36,13 @@ class Player
 		return $src;
 	}
 
+	/**
+	 * Displays All stats for the player.
+	 * Stats displayed are controlled by the configuration in the settings.json.
+	 */
+	public function displayStats() {
+		
+	}
 
 	/**
 	 * Reads the cached user data. If no user data is cached, it retrieves it from the Mojang servers.
@@ -129,10 +136,10 @@ class Player
 	 */
 	public function getPlayTime(string $worldPath): string
 	{
-		$stats = $this->readStatsJSON($worldPath, ["minecraft:custom"], ["minecraft:play_one_minute"]);
+		$stats = $this->readStatsJSON($worldPath, ["minecraft:custom"], ["minecraft:total_world_time"]);
 		$playtime = "0 mins";
 		if (!empty($stats)) {
-			$secs = $stats["minecraft:custom"]["minecraft:play_one_minute"] / 20;
+			$secs = $stats["minecraft:custom"]["minecraft:total_world_time"] / 20;
 			$time = new DateTime('@0');
 			$time2 = new DateTime('@' . $secs);
 			$playtime = $time->diff($time2)->format('%a days, %hh %im %ss');
