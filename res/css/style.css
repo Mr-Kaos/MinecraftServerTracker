@@ -4,6 +4,10 @@
 
 body {
 	font-family: 'Courier New', Courier, monospace;
+	background-image: url(../img/light.png);
+	background-repeat: repeat;
+	background-size: 128px;
+	image-rendering: pixelated;
 }
 
 main {
@@ -14,12 +18,14 @@ main {
 #player_list {
 	display: grid;
 	grid-template-columns: auto auto auto;
-	gap: 3px;
+	/* gap: 3px; */
 	width: 90%;
 }
 
 .player-container {
-	/* border: solid black thin; */
+	background-image: url(../img/stripped_oak.png);
+	background-repeat: repeat;
+	background-size: contain;
 }
 
 .player-container div {
@@ -48,7 +54,6 @@ main {
 
 .player-skin {
 	width: var(--player-icon-width);
-	image-rendering: pixelated;
 }
 
 @media screen and (min-width: 0px) and (max-width: 1080px) {
