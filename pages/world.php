@@ -1,8 +1,8 @@
 <?php
-include("page_components/header.php");
-include("world.php");
+include("components/header.php");
+include("objects/world.php");
 $world = null;
-if (!is_null($worldData = $settings->checkWorld($_GET['world']))) {
+if (!is_null($worldData = $settings->checkWorld(isset($_GET['world']) ? $_GET['world'] : null))) {
 	$world = new World($worldData);
 }
 ?>
@@ -24,4 +24,4 @@ if (!is_null($worldData = $settings->checkWorld($_GET['world']))) {
 	<?php endif; ?>
 </main>
 
-<?php include("page_components/footer.php"); ?>
+<?php include("components/footer.php"); ?>

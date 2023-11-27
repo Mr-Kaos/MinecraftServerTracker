@@ -2,7 +2,7 @@
 <html lang="en">
 
 <?php
-include("settings.php"); 
+include("objects/settings.php"); 
 $settings = new Settings();
 ?>
 <head>

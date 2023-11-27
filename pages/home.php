@@ -1,6 +1,6 @@
 <?php
-include("page_components/header.php");
-// include("page_components/nav.php");
+include("components/header.php");
+// include("components/nav.php");
 $worlds = $settings->getWorlds();
 ?>
 <main>
@@ -13,11 +13,11 @@ $worlds = $settings->getWorlds();
 					echo "Invalid syntax in settings.json";
 					break;
 				}
-				echo '<a href="worldPage.php?world=' . $name . '">' . $name . '</a><br>';
+				echo '<a href="world.php?world=' . $name . '">' . $name . '</a><br>';
 			}
 		}
 		?>
 	</div>
 </main>
 
-<?php include("page_components/footer.php"); ?>
+<?php include("components/footer.php"); ?>

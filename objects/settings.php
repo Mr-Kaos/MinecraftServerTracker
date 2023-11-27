@@ -33,11 +33,11 @@ class Settings
 	 * If it does, it retrieves the data for the world with the specified name.
 	 * @param string $name The name of the world.
 	 */
-	public function checkWorld(string $name): ?array
+	public function checkWorld(?string $name): ?array
 	{
 		$world = null;
 
-		if (!is_null($this->settings["Worlds"] ?? null)) {
+		if (!is_null($name) && !is_null($this->settings["Worlds"] ?? null)) {
 			foreach ($this->settings["Worlds"] as $w) {
 				if ($name == $this->checkJSONKey("Name", $w)) {
 					$world = $w;

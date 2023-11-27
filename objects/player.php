@@ -40,7 +40,8 @@ class Player
 	 * Displays All stats for the player.
 	 * Stats displayed are controlled by the configuration in the settings.json.
 	 */
-	public function displayStats() {
+	public function displayStats()
+	{
 		
 	}
 
@@ -143,7 +144,7 @@ class Player
 			$time = new DateTime('@0');
 			$time2 = new DateTime('@' . $secs);
 			$playtime = $time->diff($time2)->format('%a days, %hh %im %ss');
-			$playtime .= '<br>' . round($secs / 60 / 60, 2). 'hrs';
+			$playtime .= '<br>' . round($secs / 60 / 60, 2) . 'hrs';
 		}
 
 		return $playtime;

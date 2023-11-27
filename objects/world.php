@@ -53,8 +53,8 @@ class World
 				$html .= '<div class="player-container">';
 				$html .= '<img class="player-skin" src="' . $player->getPlayerHead() . '"><div>';
 				$html .= '<h3>' . $player->__get('name') . '</h3>';
-				$html .= '<b>Playtime: ' . $player->getPlayTime("$this->path/$this->name") . '</b>';
-				$html .= '<a href="playerPage.php?uuid=' . $player->__get('uuid') . '&world=' . $this->name . '">View all stats</a>';
+				$html .= '<b>Playtime: ' . $player->getPlayTime("$this->path/$this->worldFolder") . '</b>';
+				$html .= '<a href="player.php?uuid=' . $player->__get('uuid') . '&world=' . $this->name . '">View all stats</a>';
 				$html .= '</div></div>';
 			}
 		}
@@ -71,7 +71,7 @@ class World
 		$player = null;
 		if (!is_null($this->path)) {
 			if (is_dir($this->path)) {
-				if (file_exists("$this->path/$this->name/playerdata/$uuid.dat")) {
+				if (file_exists("$this->path/$this->worldFolder/playerdata/$uuid.dat")) {
 					$player = new Player($uuid);
 				}
 			} else {
