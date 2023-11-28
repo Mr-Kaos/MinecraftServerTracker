@@ -14,6 +14,22 @@ Below is the list of planned features for this web app. For features currently i
   - Don't want players to see a map of the world? Only want whitelisted players to view the statistics? Only want specific statistics to be displayed? These can all be configured in a JSON file.
 - [ ] Graphs and charts to visualise the statistics of players against each other.
 
+## How to Configure Worlds
+
+### Adding Player Statistic Filters
+
+There are several ways in which player statistics can be filtered and displayed.
+
+Categories:
+
+
+
+Category Entries:
+- `"*"` - All statistics in the specified category will be displayed.
+- `"SUM *"` - Displays the sum of all items in the specified category, including ones not specified.
+- `"<namespace>:<item>"` - Displays the specified item from the specified category from the stats. For example, `"minecraft:stone"` displays its statistic for its category.
+
+
 ## Development Path
 
 ### Currently in Development:

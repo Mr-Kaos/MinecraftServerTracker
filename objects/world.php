@@ -11,6 +11,7 @@ class World
 	private ?string $worldFolder;
 	private ?string $address;
 	private array $players;
+	private array $statFilters;
 
 	/**
 	 * Constructs a world from 
@@ -21,6 +22,7 @@ class World
 		$this->path = isset($worldData["Path"]) ? $worldData["Path"] : null;
 		$this->worldFolder = null;
 		$this->address = isset($worldData["Address"]) ? $worldData["Address"] : null;
+		$this->statFilters = isset($worldData["StatFilters"]) ? $worldData["StatFilters"] : null;
 		$this->players = array();
 		$this->readWorldProperties();
 	}
@@ -124,6 +126,10 @@ class World
 	{
 		$stats = null;
 
+		if (!file_exists('data/worldcache/' . $this->name . '.json')) {
+			$this->cacheStats();
+		}
+
 		return $stats;
 	}
 
@@ -151,5 +157,14 @@ class World
 				}
 			}
 		}
+	}
+
+	/**
+	 * Cache's world stats to a data file.
+	 * The stats are typically the sum of all player stats.
+	 */
+	private function cacheStats()
+	{
+		echo 'get and cache stats for world.';
 	}
 }

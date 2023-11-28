@@ -40,9 +40,46 @@ class Player
 	 * Displays All stats for the player.
 	 * Stats displayed are controlled by the configuration in the settings.json.
 	 */
-	public function displayStats()
+	public function displayStats(World $world): string
 	{
-		
+		$rawStats = $this->readStatsFile($world->__get('path') . '/' . $world->__get('worldFolder') . '/stats/' . $this->uuid . '.json', $world->__get('statFilters'));
+		$html = '';
+
+		foreach ($rawStats as $category => $data) {
+			$sum = 0;
+			$list = '';
+			$catName = explode(':', $category)[1];
+			$html .= '<div><h2>' . $catName . '</h2>';
+			foreach ($data as $item => $val) {
+				$sum += $val;
+				$list .= '<li>' . explode(':', $item)[1] . ": $val</li>";
+			}
+
+			$html .= "<p>Total $catName: <b>$sum</b></p>";
+			$html .= "<ul>$list</ul>";
+
+			$html .= '</div>';
+		}
+
+		return $html;
+	}
+
+	/**
+	 * Retrieves and returns the playtime as a string. Formats the playtime into days:hours:mins.
+	 */
+	public function getPlayTime(string $worldPath): string
+	{
+		$stats = $this->readStatsJSON($worldPath, ["minecraft:custom"], ["minecraft:total_world_time"]);
+		$playtime = "0 mins";
+		if (!empty($stats)) {
+			$secs = $stats["minecraft:custom"]["minecraft:total_world_time"] / 20;
+			$time = new DateTime('@0');
+			$time2 = new DateTime('@' . $secs);
+			$playtime = $time->diff($time2)->format('%a days, %hh %im %ss');
+			$playtime .= '<br>' . round($secs / 60 / 60, 2) . 'hrs';
+		}
+
+		return $playtime;
 	}
 
 	/**
@@ -64,7 +101,8 @@ class Player
 	}
 
 	/**
-	 * retrieves the user data from Mojang along with their skin.
+	 * Retrieves the user data from Mojang along with their skin.
+	 * Performs a cURL request to sessionserver.mojang.com for the specified player's data.
 	 */
 	private function cacheUserData(string $uuid)
 	{
@@ -103,17 +141,6 @@ class Player
 		return file_exists(CACHE_DIR . "$uuid.json");
 	}
 
-	/**
-	 * Performs a cURL request to sessionserver.mojang.com for the specified player's data.
-	 */
-	private function getPlayerInfo(string $uuid): string | bool
-	{
-		$curl = curl_init("https://sessionserver.mojang.com/session/minecraft/profile/$uuid?unsigned=false");
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 'GET');
-
-		return curl_exec($curl);
-	}
-
 	/** 
 	 * Reads the player's stat file from the current world.
 	 */
@@ -133,20 +160,40 @@ class Player
 	}
 
 	/**
-	 * Retrieves and returns the playtime as a string. Formats the playtime into days:hours:mins.
+	 * Reads the player's stats file from, the given world folder.
+	 * Uses the filters retrieved from the settings JSON to filter what stats are collected.
+	 * @param string $path The filepath to the player's stats file.
+	 * @param array The filters for selecting stats defined in the settings JSON file.
+	 * @return array The filtered stats.
 	 */
-	public function getPlayTime(string $worldPath): string
+	private function readStatsFile(string $path, array $filters): array
 	{
-		$stats = $this->readStatsJSON($worldPath, ["minecraft:custom"], ["minecraft:total_world_time"]);
-		$playtime = "0 mins";
-		if (!empty($stats)) {
-			$secs = $stats["minecraft:custom"]["minecraft:total_world_time"] / 20;
-			$time = new DateTime('@0');
-			$time2 = new DateTime('@' . $secs);
-			$playtime = $time->diff($time2)->format('%a days, %hh %im %ss');
-			$playtime .= '<br>' . round($secs / 60 / 60, 2) . 'hrs';
-		}
+		$filteredStats = array();
+		if ($stats = file_get_contents($path)) {
+			$stats = json_decode($stats, true);
 
-		return $playtime;
+			foreach ($filters as $filter => $item) {
+				if (isset($stats['stats'][$filter])) {
+					if ($item == '*') {
+						$filteredStats[$filter] = $stats['stats'][$filter];
+					} elseif (is_array($item)) {
+						foreach ($item as $subItem) {
+							if (isset($stats['stats'][$filter][$subItem])) {
+								$filteredStats[$filter][$subItem] = $stats['stats'][$filter][$subItem];
+							}
+						}
+					} elseif (!is_null($item)) {
+						echo "Error: Invalid Stat filter syntax for filter '$filter'. Filter items must be stored in a list.";
+					}
+					// var_dump($stats['stats'][$filter]);
+					// echo '<hr>';
+				}
+			}
+		} else {
+			echo 'Failed to read stats file.';
+		}
+		// echo '<pre>' . print_r($filteredStats, true), '</pre>';
+
+		return $filteredStats;
 	}
 }
