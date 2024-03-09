@@ -164,33 +164,6 @@ class World
 		}
 	}
 
-	/**
-	 * This function extracts the advancements from the Minecraft client jar.
-	 * The jar should be defined in the settings.json in the VersionJar key.
-	 * 
-	 * The jar is only extracted if the filename of the jar changes since the last extract.
-	 * @param string $path The path to the minecraft client jar archive.
-	 */
-	private function extractAdvancements(string $source, string $dest): bool
-	{
-		$success = true;
-		$zip = new ZipArchiveExt;
-
-		if ($zip->open($source) === true) {
-			$errors = $zip->extractSubdirTo($dest . '/advancements', "data/minecraft/advancements/");
-
-			if (count($errors) > 0) {
-				print "Failed extracting client jar. " . $errors;
-			}
-
-			$zip->close();
-		} else {
-			print "Failed opening client jar";
-		}
-
-		return $success;
-	}
-
 	private function updateWorldCache(array $worldData): void
 	{
 		$newData = [];
@@ -221,7 +194,7 @@ class World
 
 				// If client jar has changed, extract advancements again.
 				if ((array_key_exists("ClientJarName", $cachedData) ? $cachedData["ClientJarName"] : null) !== $jarName) {
-					$this->extractAdvancements($worldData["VersionJar"], $cachePath);
+					$this->extractAdvancements($worldData["VersionJar"], "$cachePath/advancements");
 				}
 			} elseif (count($matches) > 1) {
 				echo "Invalid Client jar path given!";
@@ -235,6 +208,49 @@ class World
 			$handle = fopen($cachePath . '/log.json', 'w');
 			fwrite($handle, $newData);
 		}
+	}
+
+	/**
+	 * This function extracts the advancements from the Minecraft client jar.
+	 * The jar should be defined in the settings.json in the VersionJar key.
+	 * 
+	 * The jar is only extracted if the filename of the jar changes since the last extract.
+	 * @param string $path The path to the minecraft client jar archive.
+	 */
+	private function extractAdvancements(string $source, string $dest): bool
+	{
+		$success = false;
+		$zip = new ZipArchiveExt;
+
+		if ($zip->open($source) === true) {
+			foreach (scandir($dest) as $dir) {
+				if (is_dir("$dest/$dir") && !($dir == '.' || $dir == '..')) {
+					foreach (scandir("$dest/$dir") as $file) {
+						// echo "$dest/$dir/$file <br>";
+						if (is_file("$dest/$dir/$file")) {
+							// echo "$file<br>";
+							unlink("$dest/$dir/$file");
+						}
+					}
+					rmdir("$dest/$dir");
+				}
+			}
+			rmdir($dest);
+
+			$errors = $zip->extractSubdirTo($dest, "data/minecraft/advancements/", ['recipes', 'recipes/brewing', 'recipes/building_blocks', 'recipes/combat', 'recipes/decorations', 'recipes/food', 'recipes/misc', 'recipes/redstone', 'recipes/tools', 'recipes/transportation',]);
+
+			if (count($errors) > 0) {
+				print "Failed extracting client jar. " . $errors;
+			} else {
+				$success = true;
+			}
+
+			$zip->close();
+		} else {
+			print "Failed opening client jar";
+		}
+
+		return $success;
 	}
 
 	/**
