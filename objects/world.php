@@ -24,7 +24,8 @@ class World
 	{
 		$this->name = isset($worldData["Name"]) ? $worldData["Name"] : "New World";
 		$this->path = isset($worldData["Path"]) ? $worldData["Path"] : null;
-		$this->worldFolder = null;
+		preg_match('/[^\/\\\\]+$/m', $this->path, $matches);
+		$this->worldFolder = empty($matches) ? null : $matches[0];
 		$this->address = isset($worldData["Address"]) ? $worldData["Address"] : null;
 		$this->statFilters = isset($worldData["StatFilters"]) ? $worldData["StatFilters"] : null;
 		$this->updateWorldCache($worldData);
@@ -38,10 +39,16 @@ class World
 
 	/**
 	 * PHP magic GET function
+	 * @deprecated
 	 */
 	public function __get($name)
 	{
 		return $this->$name;
+	}
+
+	public function getWorldPath(): string
+	{
+		return $this->path . '/' . $this->worldFolder . '/';
 	}
 
 	/**
@@ -139,6 +146,19 @@ class World
 	}
 
 	/**
+	 * Returns an array of all advancements available for this world.
+	 */
+	public function getAdvancements(): array
+	{
+		$advancements = [];
+		echo WORLD_CACHE . str_replace(' ', '', $this->worldFolder) . '/advancements/';
+
+		// scandir(WORLD_CACHE . str_replace(' ', '', $this->worldFolder));
+
+		return $advancements;
+	}
+
+	/**
 	 * Reads the server's server.properties file to get information on the server.
 	 * currently only reads the world name and exits after it has been retrieved.
 	 */
@@ -168,7 +188,8 @@ class World
 	{
 		$newData = [];
 		$cache = "";
-		$cachePath = WORLD_CACHE . str_replace(' ', '_', $this->name);
+		$cachedData = [];
+		$cachePath = WORLD_CACHE . $this->worldFolder;
 
 		// Initialise cache folder. Create file and directory if it does not exist, else read it as JSON.
 
@@ -185,7 +206,6 @@ class World
 		// Initialise world data and version-specific data by looking at client jar.
 		// If no client jar is given, ignore.
 		if (array_key_exists("VersionJar", $worldData)) {
-			$cachePath = WORLD_CACHE . str_replace(' ', '_', $this->name);
 			preg_match('/[^\/\\\\]+(?=\.jar)/m', $worldData["VersionJar"], $matches);
 			if (count($matches) == 1) {
 				$jarName = $matches[0];
@@ -223,24 +243,27 @@ class World
 		$zip = new ZipArchiveExt;
 
 		if ($zip->open($source) === true) {
-			foreach (scandir($dest) as $dir) {
-				if (is_dir("$dest/$dir") && !($dir == '.' || $dir == '..')) {
-					foreach (scandir("$dest/$dir") as $file) {
-						// echo "$dest/$dir/$file <br>";
-						if (is_file("$dest/$dir/$file")) {
-							// echo "$file<br>";
-							unlink("$dest/$dir/$file");
+			// Clear advancements folder if it exists.
+			if (is_dir($dest)) {
+				foreach (scandir($dest) as $dir) {
+					if (is_dir("$dest/$dir") && !($dir == '.' || $dir == '..')) {
+						foreach (scandir("$dest/$dir") as $file) {
+							// echo "$dest/$dir/$file <br>";
+							if (is_file("$dest/$dir/$file")) {
+								// echo "$file<br>";
+								unlink("$dest/$dir/$file");
+							}
 						}
+						rmdir("$dest/$dir");
 					}
-					rmdir("$dest/$dir");
 				}
+				rmdir($dest);
 			}
-			rmdir($dest);
 
 			$errors = $zip->extractSubdirTo($dest, "data/minecraft/advancements/", ['recipes', 'recipes/brewing', 'recipes/building_blocks', 'recipes/combat', 'recipes/decorations', 'recipes/food', 'recipes/misc', 'recipes/redstone', 'recipes/tools', 'recipes/transportation',]);
 
 			if (count($errors) > 0) {
-				print "Failed extracting client jar. " . $errors;
+				print "Failed extracting client jar. Errors: <pre>" . print_r($errors, true) . '</pre>';
 			} else {
 				$success = true;
 			}
