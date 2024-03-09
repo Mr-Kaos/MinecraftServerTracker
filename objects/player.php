@@ -10,6 +10,7 @@ class Player
 	private string $uuid;
 	private string $name;
 	private ?string $skinURI;
+	private int $completedAdvancements = 0;
 
 	public function __construct(string $uuid, string $name = "Player")
 	{
@@ -195,5 +196,15 @@ class Player
 		// echo '<pre>' . print_r($filteredStats, true), '</pre>';
 
 		return $filteredStats;
+	}
+
+	private function readAdvancements(string $path, array $filters): void
+	{
+		$discovered = 0;
+
+		if ($advancements = file_get_contents($path)) {
+			$advancements = json_decode($advancements, true);
+			
+		}
 	}
 }

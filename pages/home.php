@@ -13,7 +13,7 @@ $worlds = $settings->getWorlds();
 					echo "Invalid syntax in settings.json";
 					break;
 				}
-				echo '<a href="world.php?world=' . $name . '">' . $name . '</a><br>';
+				echo '<a href="world?world=' . $name . '">' . $name . '</a><br>';
 			}
 		}
 		?>

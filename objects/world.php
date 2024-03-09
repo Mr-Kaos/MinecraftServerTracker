@@ -4,6 +4,10 @@
  * This class defines a Minecraft world.
  */
 
+require_once('zipArchiveExt.php');
+
+const WORLD_CACHE = 'data/worldcache/';
+
 class World
 {
 	private string $name;
@@ -23,6 +27,7 @@ class World
 		$this->worldFolder = null;
 		$this->address = isset($worldData["Address"]) ? $worldData["Address"] : null;
 		$this->statFilters = isset($worldData["StatFilters"]) ? $worldData["StatFilters"] : null;
+		$this->updateWorldCache($worldData);
 		$this->players = array();
 		$this->readWorldProperties();
 	}
@@ -140,7 +145,7 @@ class World
 	private function readWorldProperties()
 	{
 		$finished = false;
-		if (!is_null($this->path)) {
+		if (!is_null($this->path) && is_dir($this->path)) {
 			foreach (file($this->path . '/server.properties') as $line) {
 				if ($line[0] !== '#') {
 					$split = explode('=', $line);
@@ -156,6 +161,79 @@ class World
 					break;
 				}
 			}
+		}
+	}
+
+	/**
+	 * This function extracts the advancements from the Minecraft client jar.
+	 * The jar should be defined in the settings.json in the VersionJar key.
+	 * 
+	 * The jar is only extracted if the filename of the jar changes since the last extract.
+	 * @param string $path The path to the minecraft client jar archive.
+	 */
+	private function extractAdvancements(string $source, string $dest): bool
+	{
+		$success = true;
+		$zip = new ZipArchiveExt;
+
+		if ($zip->open($source) === true) {
+			$errors = $zip->extractSubdirTo($dest . '/advancements', "data/minecraft/advancements/");
+
+			if (count($errors) > 0) {
+				print "Failed extracting client jar. " . $errors;
+			}
+
+			$zip->close();
+		} else {
+			print "Failed opening client jar";
+		}
+
+		return $success;
+	}
+
+	private function updateWorldCache(array $worldData): void
+	{
+		$newData = [];
+		$cache = "";
+		$cachePath = WORLD_CACHE . str_replace(' ', '_', $this->name);
+
+		// Initialise cache folder. Create file and directory if it does not exist, else read it as JSON.
+
+		if (is_dir($cachePath)) {
+			// check cache
+			if (file_exists($cachePath . '/log.json')) {
+				$cache = file_get_contents($cachePath . '/log.json');
+			}
+			$cachedData = json_decode($cache, true) ?? [];
+		} else {
+			mkdir($cachePath);
+		}
+
+		// Initialise world data and version-specific data by looking at client jar.
+		// If no client jar is given, ignore.
+		if (array_key_exists("VersionJar", $worldData)) {
+			$cachePath = WORLD_CACHE . str_replace(' ', '_', $this->name);
+			preg_match('/[^\/\\\\]+(?=\.jar)/m', $worldData["VersionJar"], $matches);
+			if (count($matches) == 1) {
+				$jarName = $matches[0];
+				$newData["LastUpdated"] = date_format(new DateTime(), 'Y-m-d G:i:s');
+				$newData["ClientJarName"] = $jarName;
+
+				// If client jar has changed, extract advancements again.
+				if ((array_key_exists("ClientJarName", $cachedData) ? $cachedData["ClientJarName"] : null) !== $jarName) {
+					$this->extractAdvancements($worldData["VersionJar"], $cachePath);
+				}
+			} elseif (count($matches) > 1) {
+				echo "Invalid Client jar path given!";
+				die();
+			}
+		}
+
+		$newData = json_encode($newData, JSON_NUMERIC_CHECK);
+
+		if ($newData !== $cache) {
+			$handle = fopen($cachePath . '/log.json', 'w');
+			fwrite($handle, $newData);
 		}
 	}
 

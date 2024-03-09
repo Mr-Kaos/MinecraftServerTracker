@@ -1,9 +1,40 @@
 {
 	"Security": {
-		"Require_Username": false
+		"Use_Whitelist": false,
+		"Display_Server_Address": false
 	},
-	"Worlds": {
-		"Name": "My World",
-		"Path:": "can be url or path on local disk. if url, should be a GET request to the world folder."
-	}
+	"Worlds": [
+		{
+			"Name": "My World",
+			"Path": "can be url or path on local disk. if url, should be a GET request to the world folder.",
+			"VersionJar": "minecraft-1.xx.x-client.jar",
+			"Address": "",
+			"StatFilters": {
+				"minecraft:mined": ["SUM *", "minecraft:stone", "minecraft:dirt", "minecraft:grass_block"],
+				"minecraft:broken": "*",
+				"minecraft:crafted": "*",
+				"minecraft:killed": "*",
+				"minecraft:killed_by": "*",
+				"minecraft:picked_up": "*",
+				"minecraft:used": "*",
+				"minecraft:dropped": "*"
+			}
+		},
+		{
+			"Name": "My World",
+			"Path": "/path/to/world_name",
+			"VersionJar": "/path/to/client/jar/minecraft-1.xx.x-client.jar",
+			"Address": "minecraft.net",
+			"StatFilters": {
+				"minecraft:mined": "*",
+				"minecraft:broken": "*",
+				"minecraft:crafted": ["minecraft:brick", "minecraft:stone_bricks"],
+				"minecraft:killed": "*",
+				"minecraft:killed_by": "*",
+				"minecraft:picked_up": "*",
+				"minecraft:used": "*",
+				"minecraft:dropped": "*"
+			}
+		}
+	]
 }
