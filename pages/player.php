@@ -17,6 +17,9 @@ if (!is_null($worldData = $settings->checkWorld($_GET['world']))) {
 		<p>The specified player does not exist in this world.</p>
 	<?php else : ?>
 		<h2><?= $world->__get("name") ?> - <?= $player->__get('name') ?>'s Stats</h2>
+		<div id="player_advancements">
+			<?= $player->displayAdvancements($world)?>
+		</div>
 		<div id="player_stats">
 			<?= $player->displayStats($world)?>
 		</div>

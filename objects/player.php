@@ -10,7 +10,7 @@ class Player
 	private string $uuid;
 	private string $name;
 	private ?string $skinURI;
-	private int $completedAdvancements = 0;
+	private array $advancements;
 
 	public function __construct(string $uuid, string $name = "Player")
 	{
@@ -18,6 +18,7 @@ class Player
 		$this->name = $name;
 		$this->skinURI = null;
 		$this->getUserData($uuid);
+		$this->advancements = Array();
 	}
 
 	/**
@@ -43,7 +44,7 @@ class Player
 	 */
 	public function displayStats(World $world): string
 	{
-		$rawStats = $this->readStatsFile($world->__get('path') . '/' . $world->__get('worldFolder') . '/stats/' . $this->uuid . '.json', $world->__get('statFilters'));
+		$rawStats = $this->readStatsFile($world->getWorldPath() . 'stats/' . $this->uuid . '.json', $world->__get('statFilters'));
 		$html = '';
 
 		foreach ($rawStats as $category => $data) {
@@ -61,6 +62,33 @@ class Player
 
 			$html .= '</div>';
 		}
+
+		return $html;
+	}
+
+	/**
+	 * Displays all advancements the player has completed and not completed.
+	 */
+	public function displayAdvancements(World $world): string
+	{
+		$this->readAdvancements($world, $world->getWorldPath() . 'advancements/' . $this->uuid . '.json');
+		
+		$html = '<table><caption>Advancements</caption>';
+
+		foreach ($this->advancements as $category => $advancements) {
+			$html .= '<tr><th colspan="2">' . $category . '</th></tr>';
+			foreach ($advancements as $advancement => $done) {
+				$status = '';
+				if ($done == '') {
+					$status = 'In Progress';
+				} elseif ($done == 1) {
+					$status = '&#10003;';
+				}
+				$html .= "<tr><td>$advancement</td><td>$status</td></tr>";
+			}
+		}
+
+		$html .= "</table>";
 
 		return $html;
 	}
@@ -198,13 +226,40 @@ class Player
 		return $filteredStats;
 	}
 
-	private function readAdvancements(string $path, array $filters): void
+	/**
+	 * Reads the player's advancements JSON for the specified world and finds which ones have been completed.
+	 * @param World $world The world to read the advancements from
+	 * @param string $path The path to the advancements file
+	 */
+	private function readAdvancements(World $world, string $path): array
 	{
-		$discovered = 0;
-
-		if ($advancements = file_get_contents($path)) {
-			$advancements = json_decode($advancements, true);
-			
+		/**
+		 * Filters the player's advancements to only include non-recipe or root advancements.
+		 */
+		function filter(mixed $key) {
+			return str_contains($key, 'minecraft:') && !str_contains($key, ':recipe');
 		}
+
+		$advancements = file_get_contents($path);
+
+		if (!empty($advancements)) {
+			$advancements = json_decode($advancements, true);
+
+			$advancements = array_filter($advancements, "filter", ARRAY_FILTER_USE_KEY);
+
+			$this->advancements = $world->getAdvancements();
+
+			foreach ($this->advancements as $category => $item) {
+				foreach ($item as $advancement => $status) {
+					$key = "minecraft:$category/$advancement";
+					if (array_key_exists($key, $advancements)) {
+						$this->advancements[$category][$advancement] = $advancements[$key]['done'];
+					}
+				}
+			}
+		}
+
+		// Needs refactoring, should not return a class property.
+		return $this->advancements;
 	}
 }

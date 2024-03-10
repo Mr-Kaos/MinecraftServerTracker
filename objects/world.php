@@ -7,6 +7,7 @@
 require_once('zipArchiveExt.php');
 
 const WORLD_CACHE = 'data/worldcache/';
+const CACHE_FILE = 'data.json';
 
 class World
 {
@@ -151,9 +152,18 @@ class World
 	public function getAdvancements(): array
 	{
 		$advancements = [];
-		echo WORLD_CACHE . str_replace(' ', '', $this->worldFolder) . '/advancements/';
+		$advDir = WORLD_CACHE . $this->worldFolder . '/advancements/';
 
-		// scandir(WORLD_CACHE . str_replace(' ', '', $this->worldFolder));
+		foreach (scandir($advDir) as $dir) {
+			if (is_dir("$advDir/$dir") && !($dir == '.' || $dir == '..')) {
+				$advancements[$dir] = [];
+				foreach (scandir("$advDir/$dir") as $file) {
+					if (is_file("$advDir/$dir/$file")) {
+						$advancements[$dir][str_replace('.json', '', $file)] = 0;
+					}
+				}
+			}
+		}
 
 		return $advancements;
 	}
@@ -192,11 +202,10 @@ class World
 		$cachePath = WORLD_CACHE . $this->worldFolder;
 
 		// Initialise cache folder. Create file and directory if it does not exist, else read it as JSON.
-
 		if (is_dir($cachePath)) {
 			// check cache
-			if (file_exists($cachePath . '/log.json')) {
-				$cache = file_get_contents($cachePath . '/log.json');
+			if (file_exists($cachePath . '/' . CACHE_FILE)) {
+				$cache = file_get_contents($cachePath . '/' . CACHE_FILE);
 			}
 			$cachedData = json_decode($cache, true) ?? [];
 		} else {
@@ -225,7 +234,7 @@ class World
 		$newData = json_encode($newData, JSON_NUMERIC_CHECK);
 
 		if ($newData !== $cache) {
-			$handle = fopen($cachePath . '/log.json', 'w');
+			$handle = fopen($cachePath . '/' . CACHE_FILE, 'w');
 			fwrite($handle, $newData);
 		}
 	}
